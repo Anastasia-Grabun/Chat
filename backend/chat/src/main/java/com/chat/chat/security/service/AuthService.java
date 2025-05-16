@@ -48,4 +48,10 @@ public class AuthService {
 
         return new AuthResponseBody(token, "Authentication succeeded.");
     }
+
+    public User getUserById(Long receiverId) {
+        return userRepository.findById(receiverId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+    }
+
 }
