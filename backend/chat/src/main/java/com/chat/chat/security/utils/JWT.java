@@ -27,7 +27,7 @@ public class JWT{
                 .compact();
     }
 
-    public String getLoginFromToken(String token) {
+    public String getUsernameFromToken(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 

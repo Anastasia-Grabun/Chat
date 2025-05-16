@@ -22,7 +22,7 @@ public class AuthService {
     }
 
     public AuthResponseBody register(AuthRequestBody registerRequestBody) {
-        userRepository.save(new User(registerRequestBody.getUsername(), registerRequestBody.getLogin(), registerRequestBody.getPassword()));
+        userRepository.save(new User(registerRequestBody.getUsername(), registerRequestBody.getPassword()));
         String token = jwt.generateToken(registerRequestBody.getLogin());
 
         return new AuthResponseBody(token, "User register successfully");

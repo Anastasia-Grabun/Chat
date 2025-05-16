@@ -16,8 +16,8 @@ public class LoadDatabaseConfiguration {
     @Bean
     public CommandLineRunner initDatabase(UserRepository userRepository) {
         return args -> {
-            User user = new User("test1", "test_login", encoder.encode("password1"));
-            User user2 = new User("test2","test_login2", encoder.encode("password2"));
+            User user = new User("test_login", encoder.encode("password1"));
+            User user2 = new User("test_login2", encoder.encode("password2"));
             userRepository.save(user);
             userRepository.save(user2);
         };

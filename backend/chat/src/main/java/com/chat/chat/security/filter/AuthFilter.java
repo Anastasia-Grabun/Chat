@@ -57,8 +57,8 @@ public class AuthFilter extends HttpFilter {
                 throw new ServletException("Invalid token");
             }
 
-            String login = jsonWebTokenService.getLoginFromToken(token);
-            User user = authenticationService.getUser(login);
+            String username = jsonWebTokenService.getUsernameFromToken(token);
+            User user = authenticationService.getUser(username);
             request.setAttribute("authenticatedUser", user);
             chain.doFilter(request, response);
         } catch (Exception e) {

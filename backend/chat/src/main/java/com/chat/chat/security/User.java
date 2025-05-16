@@ -23,18 +23,14 @@ public class User {
     private Long id;
 
     @NotNull
-    private String username;
-
-    @NotNull
     @Column(unique = true)
-    private String login;
+    private String username;
 
     @JsonIgnore
     private String password;
 
-    public User(String username, String login, String password) {
+    public User(String username, String password) {
         this.username = username;
-        this.login = login;
         this.password = password;
     }
 }
