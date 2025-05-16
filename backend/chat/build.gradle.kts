@@ -2,6 +2,7 @@ plugins {
 	java
 	id("org.springframework.boot") version "3.3.4"
 	id("io.spring.dependency-management") version "1.1.6"
+	kotlin("jvm")
 }
 
 group = "com.chat "
@@ -35,9 +36,16 @@ dependencies {
 	testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
 
 	// Security
+	implementation("org.springframework.boot:spring-boot-starter-security")
+
+	//JWT
 	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
 	implementation("io.jsonwebtoken:jjwt-impl:0.12.6")
 	implementation(("io.jsonwebtoken:jjwt-jackson:0.12.6"))
+
+
+	implementation(kotlin("stdlib-jdk8"))
+
 }
 
 tasks.withType<Test> {

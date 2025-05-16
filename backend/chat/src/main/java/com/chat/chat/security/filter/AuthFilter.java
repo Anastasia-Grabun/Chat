@@ -5,52 +5,35 @@ import com.chat.chat.security.service.AuthService;
 import com.chat.chat.security.utils.JWT;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class AuthFilter extends HttpFilter {
-    private final List<String> unsecuredEndpoints = Arrays.asList(
-            "/api/v1/authentication/login",
-            "/api/v1/authentication/register",
-            "/api/v1/authentication/send-password-reset-token",
-            "/api/v1/authentication/reset-password");
+public class AuthFilter extends OncePerRequestFilter {
 
     private final JWT jsonWebTokenService;
     private final AuthService authenticationService;
 
     @Override
-    protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-        response.addHeader("Access-Control-Allow-Origin", "*");
-        response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        response.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        String authorization = request.getHeader("Authorization");
 
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            response.setStatus(HttpServletResponse.SC_OK);
-            return;
-        }
-
-        String path = request.getRequestURI();
-
-        if (unsecuredEndpoints.contains(path) || path.startsWith("/api/v1/authentication/oauth") || path.startsWith("/api/v1/storage")) {
-            chain.doFilter(request, response);
-            return;
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return; // если токена нет, просто пропускаем дальше — SecurityConfig настроит, где нужно auth
         }
 
         try {
-            String authorization = request.getHeader("Authorization");
-            if (authorization == null || !authorization.startsWith("Bearer ")) {
-                throw new ServletException("Token missing.");
-            }
-
             String token = authorization.substring(7);
 
             if (jsonWebTokenService.isTokenExpired(token)) {
@@ -59,8 +42,16 @@ public class AuthFilter extends HttpFilter {
 
             String username = jsonWebTokenService.getUsernameFromToken(token);
             User user = authenticationService.getUser(username);
+
+            // Можно положить пользователя в SecurityContext (по желанию)
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(user, null, List.of());
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+            // И/или в атрибут запроса, если нужно
             request.setAttribute("authenticatedUser", user);
-            chain.doFilter(request, response);
+
+            filterChain.doFilter(request, response);
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
